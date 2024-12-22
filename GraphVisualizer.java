@@ -129,6 +129,14 @@ public class GraphVisualizer extends JPanel {
                     int midX = (startX + endX) / 2;
                     int midY = (startY + endY) / 2;
 
+                    // Check if the midpoint is near the screen center
+                    int centerThreshold = 50; // Threshold to consider midpoint near the center
+                    if (Math.abs(midX - centerX) < centerThreshold && Math.abs(midY - centerY) < centerThreshold) {
+                        // Shift label toward the starting point of the edge
+                        midX = (startX + midX) / 2;
+                        midY = (startY + midY) / 2;
+                    }
+
                     // Offset the label slightly above or to the side of the edge
                     int labelOffset = 10; // Adjust the offset as needed
                     midX += labelOffset; // Move label slightly to the right
@@ -151,7 +159,6 @@ public class GraphVisualizer extends JPanel {
         }
     }
 
-
     public static void createAndShowGUI(Graph graph) {
         JFrame frame = new JFrame("Graph Visualization");
         GraphVisualizer panel = new GraphVisualizer(graph);
@@ -161,5 +168,4 @@ public class GraphVisualizer extends JPanel {
         frame.pack();
         frame.setVisible(true);
     }
-
 }
