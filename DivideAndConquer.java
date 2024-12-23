@@ -1,6 +1,42 @@
+import javax.swing.*;
 import java.util.*;
 
 public class DivideAndConquer {
+
+    public static void main(String[] args) {
+        // Create a graph object
+        Graph graph = new Graph();
+
+        // Add cities with time windows
+        graph.addCity("A", 0, 20);
+        graph.addCity("B", 2, 15);
+        graph.addCity("C", 5, 20);
+        graph.addCity("D", 10, 25);
+
+        // Connect cities with distances and travel times
+        graph.connectCities("A", "B", 5, 3);
+        graph.connectCities("A", "C", 10, 6);
+        graph.connectCities("B", "C", 4, 2);
+        graph.connectCities("B", "D", 8, 5);
+        graph.connectCities("C", "D", 6, 4);
+
+        // Create and show the GUI
+        SwingUtilities.invokeLater(() -> GraphVisualizer.createAndShowGUI(graph));
+
+        // Solve TSPTW using Divide and Conquer approach
+        List<String> solution = solveTSPTW_DivideAndConquer(graph, graph.getAllCities(), "A");
+
+        System.out.println();
+
+        // Print the solution
+        if (solution == null) {
+            System.out.println("No valid path found.");
+        } else {
+            System.out.println("Optimal Path: " + solution);
+            int[] cost = graph.calculateFeasiblePathCost(solution);
+            System.out.println("Optimal path distance: " + cost[0] + " Time: " + cost[1]);
+        }
+    }
 
     /**
      * Solve TSPTW using Divide and Conquer approach.
@@ -23,7 +59,7 @@ public class DivideAndConquer {
 
         // Recursively solve TSPTW for each subset
         List<String> path1 = solveTSPTW_DivideAndConquer(graph, subset1, startCity);
-        List<String> path2 = solveTSPTW_DivideAndConquer(graph, subset2, path1.getLast());
+        List<String> path2 = solveTSPTW_DivideAndConquer(graph, subset2, path1.get(path1.size() - 1));
 
         // Combine the two paths
         return mergePaths(graph, path1, path2, startCity);
@@ -36,66 +72,40 @@ public class DivideAndConquer {
         // Add the start city to the list for permutations
         List<String> allCities = new ArrayList<>(cities);
         if (!allCities.contains(startCity)) {
-            allCities.add(0, startCity); // Add the start city to the beginning
+            allCities.add(0, startCity);
         }
 
-        // Generate all permutations of the cities (excluding the start city)
+        // Generate all permutations
         List<List<String>> permutations = generatePermutations(allCities);
 
-        // Variables to store the optimal path, cost, and time
+        // Find the optimal path
         List<String> optimalPath = null;
         int optimalCost = Integer.MAX_VALUE;
         int optimalTime = Integer.MAX_VALUE;
 
-        // Evaluate each permutation
         for (List<String> perm : permutations) {
-            // Add the start city to the beginning and end of the path
-            List<String> path = new ArrayList<>();
-            path.add(startCity);
-            path.addAll(perm);
-            path.add(startCity);
-
-            // Calculate the cost and time of the path
-            int[] result = graph.calculateFeasiblePathCost(path);
-            if (result == null) {
-                continue; // Skip invalid paths
-            }
-            int cost = result[0]; // Total distance
-            int time = result[1]; // Total time
-
-            // Debugging output for the current path, cost, and time
-            System.out.println("Checking path: " + path);
-            System.out.println("Cost (Distance): " + cost);
-            System.out.println("Time: " + time);
-
-            // Update the optimal path if it's better
-            if (cost < optimalCost || (cost == optimalCost && time < optimalTime)) {
-                optimalCost = cost;
-                optimalTime = time;
-                optimalPath = path;
-                System.out.println("New optimal path found: " + optimalPath);
-                System.out.println("New optimal cost: " + optimalCost);
-                System.out.println("New optimal time: " + optimalTime);
+            int[] cost = graph.calculateFeasiblePathCost(perm);
+            if (cost != null) {
+                // Check if the current path has a lower distance, or same distance with lower time
+                if (cost[0] < optimalCost || (cost[0] == optimalCost && cost[1] < optimalTime)) {
+                    optimalCost = cost[0];
+                    optimalTime = cost[1];  // Store the time for comparison in future iterations
+                    optimalPath = perm;
+                }
             }
         }
 
         return optimalPath;
     }
 
-
-
-    /**
-     * Merge two paths into a single path while respecting time windows.
-     */
     private static List<String> mergePaths(Graph graph, List<String> path1, List<String> path2, String startCity) {
-
         List<String> mergedPath = new ArrayList<>(path1);
 
         // Track visited cities to avoid duplication
         Set<String> visited = new HashSet<>(path1);
 
         // Add the best transition city and remaining path
-        String lastCity = path1.getLast();
+        String lastCity = path1.get(path1.size() - 1);
 
         // Merge path2 into path1
         for (String city : path2) {
@@ -105,7 +115,7 @@ public class DivideAndConquer {
                 int arrivalTime = graph.calculateArrivalTime(mergedPath, travelTime);
 
                 // Calculate feasible path cost and check if it's valid
-                int pathCost = graph.calculateFeasiblePathTime(mergedPath);
+                int pathCost = graph.calculateFeasiblePathCost(mergedPath)[0];
                 if (pathCost == -1) {
                     return null;  // Return null if the path is not feasible
                 }
@@ -120,23 +130,15 @@ public class DivideAndConquer {
             }
         }
 
-        // Check if all cities have been visited and the path is complete
-        for (String city : path2) {
-            if (!visited.contains(city)) {
-                return null;  // Return null if a required city is missing
-            }
-        }
-
         // Optionally, return to the start city
         if (graph.isEdgeValid(lastCity, startCity) && visited.contains(startCity)) {
             mergedPath.add(startCity);
         } else {
-            return null;  // Return null if we can't return to the start city
+            return null;  // Return null if unable to return to the start city
         }
 
         return mergedPath;
     }
-
 
     /**
      * Generate all permutations of a list of cities.
@@ -160,4 +162,23 @@ public class DivideAndConquer {
         }
     }
 
+    private static int calculateArrivalTime(Graph graph, List<String> path, int travelTime) {
+        int currentTime = 0;
+
+        // Calculate cumulative travel time for the current path
+        for (int i = 0; i < path.size() - 1; i++) {
+            String from = path.get(i);
+            String to = path.get(i + 1);
+
+            int edgeTravelTime = graph.getEdgeTravelTime(from, to);
+            if (edgeTravelTime == -1) {
+                // Invalid edge, terminate early (or handle it accordingly)
+                return -1;
+            }
+            currentTime += edgeTravelTime;
+        }
+
+        // Add the travel time for the next edge
+        return currentTime + travelTime;
+    }
 }
