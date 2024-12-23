@@ -34,7 +34,7 @@ public class Greedy {
                         int arrivalTime = currentTime + travelTime;
 
                         // Use isEdgeWithinTimeWindow to check if the city is feasible to visit
-                        if (graph.isEdgeWithinTimeWindow(currentCity, city, arrivalTime)) {
+                        if (graph.isEdgeWithinLatestTimeWindow(currentCity, city, arrivalTime)) {
                             // Select the city with the smallest travel time
                             if (travelTime < minTravelTime) {
                                 minTravelTime = travelTime;

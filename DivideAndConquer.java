@@ -36,26 +36,53 @@ public class DivideAndConquer {
         // Add the start city to the list for permutations
         List<String> allCities = new ArrayList<>(cities);
         if (!allCities.contains(startCity)) {
-            allCities.addFirst(startCity);
+            allCities.add(0, startCity); // Add the start city to the beginning
         }
 
-        // Generate all permutations
+        // Generate all permutations of the cities (excluding the start city)
         List<List<String>> permutations = generatePermutations(allCities);
 
-        // Find the optimal path
+        // Variables to store the optimal path, cost, and time
         List<String> optimalPath = null;
         int optimalCost = Integer.MAX_VALUE;
+        int optimalTime = Integer.MAX_VALUE;
 
+        // Evaluate each permutation
         for (List<String> perm : permutations) {
-            int cost = graph.calculateFeasiblePathCost(perm);
-            if (cost >= 0 && cost < optimalCost) {
+            // Add the start city to the beginning and end of the path
+            List<String> path = new ArrayList<>();
+            path.add(startCity);
+            path.addAll(perm);
+            path.add(startCity);
+
+            // Calculate the cost and time of the path
+            int[] result = graph.calculateFeasiblePathCost(path);
+            if (result == null) {
+                continue; // Skip invalid paths
+            }
+            int cost = result[0]; // Total distance
+            int time = result[1]; // Total time
+
+            // Debugging output for the current path, cost, and time
+            System.out.println("Checking path: " + path);
+            System.out.println("Cost (Distance): " + cost);
+            System.out.println("Time: " + time);
+
+            // Update the optimal path if it's better
+            if (cost < optimalCost || (cost == optimalCost && time < optimalTime)) {
                 optimalCost = cost;
-                optimalPath = perm;
+                optimalTime = time;
+                optimalPath = path;
+                System.out.println("New optimal path found: " + optimalPath);
+                System.out.println("New optimal cost: " + optimalCost);
+                System.out.println("New optimal time: " + optimalTime);
             }
         }
 
         return optimalPath;
     }
+
+
 
     /**
      * Merge two paths into a single path while respecting time windows.
@@ -83,7 +110,7 @@ public class DivideAndConquer {
                     return null;  // Return null if the path is not feasible
                 }
 
-                if (graph.isEdgeValid(lastCity, city) && graph.isEdgeWithinTimeWindow(lastCity, city, arrivalTime)) {
+                if (graph.isEdgeValid(lastCity, city) && graph.isEdgeWithinLatestTimeWindow(lastCity, city, arrivalTime)) {
                     mergedPath.add(city);
                     visited.add(city);
                     lastCity = city; // Update lastCity for subsequent checks

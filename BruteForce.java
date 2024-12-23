@@ -21,9 +21,10 @@ public class BruteForce {
         // Generate all permutations of the remaining cities
         List<List<String>> permutations = generatePermutations(cities);
 
-        // Variables to store the optimal path and its cost
+        // Variables to store the optimal path, cost, and time
         List<String> optimalPath = null;
         int optimalCost = Integer.MAX_VALUE;
+        int optimalTime = Integer.MAX_VALUE;
 
         // Evaluate each permutation
         for (List<String> perm : permutations) {
@@ -33,12 +34,18 @@ public class BruteForce {
             path.addAll(perm);
             path.add(start);
 
-            // Calculate the cost of the path
-            int cost = graph.calculateFeasiblePathCost(path);
+            // Calculate the cost and time of the path
+            int[] result = graph.calculateFeasiblePathCost(path);
+            if (result == null) {
+                continue; // Skip invalid paths
+            }
+            int cost = result[0]; // Total distance
+            int time = result[1]; // Total time
 
-            // Update the optimal path if the cost is lower
-            if (cost >= 0 && cost < optimalCost) {
+            // Update the optimal path if it's better
+            if (cost < optimalCost || (cost == optimalCost && time < optimalTime)) {
                 optimalCost = cost;
+                optimalTime = time;
                 optimalPath = path;
             }
         }
@@ -46,6 +53,7 @@ public class BruteForce {
         // Return the optimal path, or null if no valid path exists
         return optimalPath;
     }
+
 
     /**
      * Generates all permutations of a list of cities.
