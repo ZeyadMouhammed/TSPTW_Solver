@@ -1,42 +1,6 @@
-import javax.swing.*;
 import java.util.*;
 
 public class DivideAndConquer {
-
-    public static void main(String[] args) {
-        // Create a graph object
-        Graph graph = new Graph();
-
-        // Add cities with time windows
-        graph.addCity("A", 0, 20);
-        graph.addCity("B", 2, 15);
-        graph.addCity("C", 5, 20);
-        graph.addCity("D", 10, 25);
-
-        // Connect cities with distances and travel times
-        graph.connectCities("A", "B", 5, 3);
-        graph.connectCities("A", "C", 10, 6);
-        graph.connectCities("B", "C", 4, 2);
-        graph.connectCities("B", "D", 8, 5);
-        graph.connectCities("C", "D", 6, 4);
-
-        // Create and show the GUI
-        SwingUtilities.invokeLater(() -> GraphVisualizer.createAndShowGUI(graph));
-
-        // Solve TSPTW using Divide and Conquer approach
-        List<String> solution = solveTSPTW_DivideAndConquer(graph, graph.getAllCities(), "A");
-
-        System.out.println();
-
-        // Print the solution
-        if (solution == null) {
-            System.out.println("No valid path found.");
-        } else {
-            System.out.println("Optimal Path: " + solution);
-            int[] cost = graph.calculateFeasiblePathCost(solution);
-            System.out.println("Optimal path distance: " + cost[0] + " Time: " + cost[1]);
-        }
-    }
 
     /**
      * Solve TSPTW using Divide and Conquer approach.
@@ -59,7 +23,7 @@ public class DivideAndConquer {
 
         // Recursively solve TSPTW for each subset
         List<String> path1 = solveTSPTW_DivideAndConquer(graph, subset1, startCity);
-        List<String> path2 = solveTSPTW_DivideAndConquer(graph, subset2, path1.get(path1.size() - 1));
+        List<String> path2 = solveTSPTW_DivideAndConquer(graph, subset2, path1.getLast());
 
         // Combine the two paths
         return mergePaths(graph, path1, path2, startCity);
@@ -72,7 +36,7 @@ public class DivideAndConquer {
         // Add the start city to the list for permutations
         List<String> allCities = new ArrayList<>(cities);
         if (!allCities.contains(startCity)) {
-            allCities.add(0, startCity);
+            allCities.addFirst(startCity);
         }
 
         // Generate all permutations
@@ -105,7 +69,7 @@ public class DivideAndConquer {
         Set<String> visited = new HashSet<>(path1);
 
         // Add the best transition city and remaining path
-        String lastCity = path1.get(path1.size() - 1);
+        String lastCity = path1.getLast();
 
         // Merge path2 into path1
         for (String city : path2) {
@@ -161,24 +125,5 @@ public class DivideAndConquer {
             Collections.swap(cities, start, i);
         }
     }
-
-    private static int calculateArrivalTime(Graph graph, List<String> path, int travelTime) {
-        int currentTime = 0;
-
-        // Calculate cumulative travel time for the current path
-        for (int i = 0; i < path.size() - 1; i++) {
-            String from = path.get(i);
-            String to = path.get(i + 1);
-
-            int edgeTravelTime = graph.getEdgeTravelTime(from, to);
-            if (edgeTravelTime == -1) {
-                // Invalid edge, terminate early (or handle it accordingly)
-                return -1;
-            }
-            currentTime += edgeTravelTime;
-        }
-
-        // Add the travel time for the next edge
-        return currentTime + travelTime;
-    }
+    
 }
