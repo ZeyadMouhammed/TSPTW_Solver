@@ -264,7 +264,7 @@ public class Graph {
         // Add the additional travel time to the total cumulative travel time
         return currentTime + additionalTravelTime;
     }
-    
+
     /**
      * Converts the graph to an adjacency matrix.
      *
@@ -387,29 +387,37 @@ public class Graph {
         return Collections.emptyList();
     }
 
-
-    //TODO: Update this method
-
     /**
      * @param current     The current Node
      * @param currentTime And it's current time
      * @return nearest city or neighbor city
      */
-    @Deprecated
     private Node getNearestNeighbor(Node current, int currentTime) {
         Node nearest = null;
         int minDistance = Integer.MAX_VALUE;
+        int earliestArrivalTime = Integer.MAX_VALUE;  // To store the earliest arrival time in case of ties in distance
 
+        // Iterate over all neighbors to find the nearest one
         for (Edge edge : current.neighbours.values()) {
             int arrivalTime = currentTime + edge.travelTime;
 
             // Ensure the arrival time is within the time window of the neighbor
-            if (edge.isEdgeWithinLatestTimeWindow(arrivalTime) && edge.distance < minDistance) {
-                nearest = edge.to;
-                minDistance = edge.distance;
+            if (edge.isEdgeWithinLatestTimeWindow(arrivalTime)) {
+                // First, check if this edge has a smaller distance
+                if (edge.distance < minDistance) {
+                    nearest = edge.to;  // Update the nearest node
+                    minDistance = edge.distance;  // Update the minimum distance
+                    earliestArrivalTime = arrivalTime;  // Update the earliest arrival time
+                }
+                // If distances are the same, prefer the one with the earlier arrival time
+                else if (edge.distance == minDistance && arrivalTime < earliestArrivalTime) {
+                    nearest = edge.to;  // Update the nearest node with earlier arrival time
+                    earliestArrivalTime = arrivalTime;  // Update the earliest arrival time
+                }
             }
         }
 
+        // Return the nearest node, or null if no valid neighbor was found
         return nearest;
     }
 
