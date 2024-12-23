@@ -5,7 +5,7 @@ public class DynamicProgramming {
     // Method to solve TSPTW using cost and travel time matrices
     public static int[] solveTSPTW_DP(int[][] costMatrix, int[][] travelTimeMatrix, int[][] timeWindows) {
         int n = costMatrix.length;
-        if (n == 0) return new int[] {-1, -1};
+        if (n == 0) return new int[]{-1, -1};
 
         int fullMask = (1 << n) - 1;
 
@@ -70,7 +70,7 @@ public class DynamicProgramming {
         }
 
         // Return both the minimum cost and corresponding time
-        return new int[] {minCost == Integer.MAX_VALUE ? -1 : minCost,
+        return new int[]{minCost == Integer.MAX_VALUE ? -1 : minCost,
                 minTotalTime == Integer.MAX_VALUE ? -1 : minTotalTime};
     }
 }

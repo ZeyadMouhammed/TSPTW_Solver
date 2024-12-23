@@ -22,22 +22,21 @@ public class Greedy {
         // While there are unvisited nodes
         while (visited.size() < graph.getNumberOfCities()) {
             String nextNode = null;
-            int minTravelTime = Integer.MAX_VALUE;
+            int minDistance = Integer.MAX_VALUE;
 
             // Check all cities that are not visited
             for (String city : graph.getAllCities()) {
                 if (!visited.contains(city)) {
                     // Check if an edge exists between current city and next city
                     if (graph.isEdgeValid(currentCity, city)) {
-                        // Calculate travel time and arrival time
-                        int travelTime = graph.getEdgeTravelTime(currentCity, city);
-                        int arrivalTime = currentTime + travelTime;
+                        // Calculate path distance (replace travel time with distance)
+                        int distance = graph.getEdgeTravelDistance(currentCity, city);
 
-                        // Use isEdgeWithinTimeWindow to check if the city is feasible to visit
-                        if (graph.isEdgeWithinLatestTimeWindow(currentCity, city, arrivalTime)) {
-                            // Select the city with the smallest travel time
-                            if (travelTime < minTravelTime) {
-                                minTravelTime = travelTime;
+                        // Check if the city is feasible to visit (based on distance)
+                        if (graph.isEdgeWithinLatestTimeWindow(currentCity, city, distance)) {
+                            // Select the city with the smallest distance
+                            if (distance < minDistance) {
+                                minDistance = distance;
                                 nextNode = city;
                             }
                         }
@@ -54,7 +53,7 @@ public class Greedy {
             visited.add(nextNode);
             path.add(nextNode);
             currentCity = nextNode;
-            currentTime += minTravelTime; // Update the time after visiting the city
+            currentTime += minDistance; // Update the current distance after visiting the city
         }
 
         // Optionally return to the start node to complete the cycle
@@ -65,7 +64,6 @@ public class Greedy {
         }
 
         return path;
-
     }
 
 }

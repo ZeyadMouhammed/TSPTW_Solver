@@ -75,7 +75,7 @@ public class Main {
 
         int[] result = DynamicProgramming.solveTSPTW_DP(costMatrix, travelTimeMatrix, timeWindows);
         if (result[0] != -1) {
-            System.out.println("Minimum cost to solve TSPTW: " + result[0] + " Path Time: " +result[1]);
+            System.out.println("Minimum cost to solve TSPTW: " + result[0] + " Path Time: " + result[1]);
         } else {
             System.out.println("No feasible solution exists within the given time windows.");
         }
