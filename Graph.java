@@ -222,11 +222,8 @@ public class Graph {
             }
 
             // Wait until the earliest allowed time, if necessary.
-            if (arrivalTime < earliestTime) {
-                currentTime = earliestTime; // Update to wait until earliest time.
-            } else {
-                currentTime = arrivalTime; // Proceed with the current arrival time.
-            }
+            // Proceed with the current arrival time.
+            currentTime = Math.max(arrivalTime, earliestTime); // Update to wait until earliest time.
 
             // Accumulate the cost of the edge.
             totalCost += getEdgeTravelDistance(from, to);
@@ -234,47 +231,6 @@ public class Graph {
 
         // Return the total cost and final time as an array.
         return new int[]{totalCost, currentTime};
-    }
-
-
-    /**
-     * Calculates the total feasible path cost for a given path, considering travel time and time windows.
-     *
-     * @param path List of locations representing the path to be evaluated.
-     * @return The total time cost of the path if feasible, or -1 if the path is invalid due to time window constraints.
-     */
-    public int calculateFeasiblePathTime(List<String> path) {
-        int totalTimeCost = 0; // Variable to accumulate the total time cost of the path.
-        int currentTime = 0; // Keeps track of the current time as the path is traversed.
-
-        // Iterate through each edge in the path
-        for (int i = 0; i < path.size() - 1; i++) {
-            String from = path.get(i); // Starting point of the current edge.
-            String to = path.get(i + 1); // Ending point of the current edge.
-
-            // Get the travel time for the current edge
-            int travelTime = getEdgeTravelTime(from, to);
-
-            // If the travel time is -1, it means the edge is invalid (no valid connection)
-            if (travelTime == -1) {
-                return -1; // Invalid path, return -1.
-            }
-
-            // Calculate the arrival time at the destination
-            int arrivalTime = currentTime + travelTime;
-
-            // Check if the edge is within the allowed time window based on the arrival time
-            if (!isEdgeWithinLatestTimeWindow(from, to, arrivalTime)) {
-                return -1; // Invalid path, return -1.
-            }
-
-            // Update the current time and accumulate the time cost of the path (travel time)
-            currentTime = arrivalTime;
-            totalTimeCost += travelTime; // Add the travel time of the edge to total time cost.
-        }
-
-        // Return the total time cost of the feasible path
-        return totalTimeCost;
     }
 
     /**
@@ -308,44 +264,7 @@ public class Graph {
         // Add the additional travel time to the total cumulative travel time
         return currentTime + additionalTravelTime;
     }
-
-    /**
-     * Calculates the total distance and time for a given path without considering time window constraints.
-     *
-     * @param path List of locations representing the path to be evaluated.
-     * @return An array of two integers: the total distance and total time of the path.
-     */
-    public int[] calculatePathDistanceAndTime(List<String> path) {
-        int totalDistance = 0; // Variable to accumulate the total distance.
-        int totalTime = 0; // Variable to accumulate the total time.
-        int currentTime = 0; // Keeps track of the current time as the path is traversed.
-
-        // Iterate through each edge in the path
-        for (int i = 0; i < path.size() - 1; i++) {
-            String from = path.get(i); // Starting point of the current edge.
-            String to = path.get(i + 1); // Ending point of the current edge.
-
-            // Get the travel distance and time for the current edge
-            int travelDistance = getEdgeTravelDistance(from, to);
-            int travelTime = getEdgeTravelTime(from, to);
-
-            // If either travel distance or travel time is -1, it indicates an invalid edge
-            if (travelDistance == -1 || travelTime == -1) {
-                return new int[]{0, 0}; // Return [0, 0] for invalid path.
-            }
-
-            // Add the travel distance and time to the total accumulations
-            totalDistance += travelDistance;
-            currentTime += travelTime; // Update current time based on travel time.
-        }
-
-        // The total time is the accumulated current time after traversing all edges
-        totalTime = currentTime;
-
-        // Return an array containing both total distance and total time
-        return new int[]{totalDistance, totalTime};
-    }
-
+    
     /**
      * Converts the graph to an adjacency matrix.
      *
