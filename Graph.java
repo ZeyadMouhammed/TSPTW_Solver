@@ -107,7 +107,7 @@ public class Graph {
         }
         return edge.travelTime;
     }
-
+    
     /**
      * Retrieves a list of city names that can be reached directly from the given city.
      *
