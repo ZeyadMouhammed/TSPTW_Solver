@@ -32,7 +32,7 @@ public class Main {
             System.out.println("No valid path found.");
         } else {
             System.out.println("Optimal Path: " + solution);
-            cost = graph.calculatePathDistanceAndTime(solution);
+            cost = graph.calculateFeasiblePathCost(solution);
             System.out.println("optimal path Distance: " + cost[0] + " Time: " + cost[1]);
         }
 
@@ -46,7 +46,7 @@ public class Main {
             System.out.println("No valid path found.");
         } else {
             System.out.println("Optimal Path: " + solution);
-            cost = graph.calculatePathDistanceAndTime(solution);
+            cost = graph.calculateFeasiblePathCost(solution);
             System.out.println("optimal path Distance: " + cost[0] + " Time: " + cost[1]);
         }
 
@@ -59,7 +59,7 @@ public class Main {
             System.out.println("No valid path found.");
         } else {
             System.out.println("Optimal Path: " + solution);
-            cost = graph.calculatePathDistanceAndTime(solution);
+            cost = graph.calculateFeasiblePathCost(solution);
             System.out.println("optimal path Distance: " + cost[0] + " Time: " + cost[1]);
         }
 
@@ -73,7 +73,7 @@ public class Main {
 
         int[][] timeWindows = graph.toTimeWindowMatrix();
 
-        int[] result = DynamicProgramming.SolveTSPTW_DP(costMatrix, travelTimeMatrix, timeWindows);
+        int[] result = DynamicProgramming.solveTSPTW_DP(costMatrix, travelTimeMatrix, timeWindows);
         if (result[0] != -1) {
             System.out.println("Minimum cost to solve TSPTW: " + result[0] + " Path Time: " +result[1]);
         } else {

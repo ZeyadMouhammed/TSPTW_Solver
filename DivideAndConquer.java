@@ -125,5 +125,5 @@ public class DivideAndConquer {
             Collections.swap(cities, start, i);
         }
     }
-    
+
 }
