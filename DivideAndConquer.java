@@ -11,6 +11,7 @@ public class DivideAndConquer {
      * @return The optimal path as a list of city names.
      */
     public static List<String> solveTSPTW_DivideAndConquer(Graph graph, List<String> cities, String startCity) {
+
         // Base case: If only a small number of cities, solve directly
         if (cities.size() <= 3) {
             return solveSmallTSP(graph, cities, startCity);
@@ -23,7 +24,15 @@ public class DivideAndConquer {
 
         // Recursively solve TSPTW for each subset
         List<String> path1 = solveTSPTW_DivideAndConquer(graph, subset1, startCity);
-        List<String> path2 = solveTSPTW_DivideAndConquer(graph, subset2, path1.getLast());
+        if (path1 == null) {
+            return null;
+        }
+
+        String lastCityInPath1 = path1.getLast();
+        List<String> path2 = solveTSPTW_DivideAndConquer(graph, subset2, lastCityInPath1);
+        if (path2 == null) {
+            return null;
+        }
 
         // Combine the two paths
         return mergePaths(graph, path1, path2, startCity);
@@ -33,6 +42,7 @@ public class DivideAndConquer {
      * Solve TSP for a small number of cities using brute force.
      */
     private static List<String> solveSmallTSP(Graph graph, List<String> cities, String startCity) {
+
         // Add the start city to the list for permutations
         List<String> allCities = new ArrayList<>(cities);
         if (!allCities.contains(startCity)) {
@@ -53,54 +63,41 @@ public class DivideAndConquer {
                 // Check if the current path has a lower distance, or same distance with lower time
                 if (cost[0] < optimalCost || (cost[0] == optimalCost && cost[1] < optimalTime)) {
                     optimalCost = cost[0];
-                    optimalTime = cost[1];  // Store the time for comparison in future iterations
+                    optimalTime = cost[1];
                     optimalPath = perm;
                 }
             }
         }
-
         return optimalPath;
     }
 
     private static List<String> mergePaths(Graph graph, List<String> path1, List<String> path2, String startCity) {
+
         List<String> mergedPath = new ArrayList<>(path1);
-
-        // Track visited cities to avoid duplication
         Set<String> visited = new HashSet<>(path1);
-
-        // Add the best transition city and remaining path
         String lastCity = path1.getLast();
 
-        // Merge path2 into path1
         for (String city : path2) {
             if (!visited.contains(city)) {
-                // Check if the edge is valid and feasible
                 int travelTime = graph.getEdgeTravelTime(lastCity, city);
-                int arrivalTime = graph.calculateArrivalTime(mergedPath, travelTime);
+                int arrivalTime = graph.getValidArrivalTime(lastCity, city, graph.calculateArrivalTime(mergedPath, travelTime));
 
-                // Calculate feasible path cost and check if it's valid
-                int pathCost = graph.calculateFeasiblePathCost(mergedPath)[0];
-                if (pathCost == -1) {
-                    return null;  // Return null if the path is not feasible
-                }
-
-                if (graph.isEdgeValid(lastCity, city) && graph.isEdgeWithinLatestTimeWindow(lastCity, city, arrivalTime)) {
+                if (arrivalTime != -1) {
                     mergedPath.add(city);
                     visited.add(city);
-                    lastCity = city; // Update lastCity for subsequent checks
+                    lastCity = city;
                 } else {
-                    return null;  // Return null if the path can't be completed due to invalid city
+                    return null;
                 }
             }
         }
 
-        // Optionally, return to the start city
-        if (graph.isEdgeValid(lastCity, startCity) && visited.contains(startCity)) {
+        // Optionally return to the start city
+        if (graph.isEdgeValid(lastCity, startCity)) {
             mergedPath.add(startCity);
         } else {
-            return null;  // Return null if unable to return to the start city
+            return null;
         }
-
         return mergedPath;
     }
 
@@ -125,5 +122,4 @@ public class DivideAndConquer {
             Collections.swap(cities, start, i);
         }
     }
-
 }
