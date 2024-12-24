@@ -8,11 +8,13 @@ import java.util.Map;
 
 public class GraphVisualizer extends JPanel {
 
-    private Graph graph;
+    private final Graph graph;
+    private final String startCity;
     private JTextArea outputArea;
 
-    public GraphVisualizer(Graph graph) {
+    public GraphVisualizer(Graph graph, String startCity) {
         this.graph = graph;
+        this.startCity = startCity;
         setPreferredSize(new Dimension(900, 700));
         setLayout(new BorderLayout()); // Use BorderLayout for better positioning
 
@@ -26,9 +28,9 @@ public class GraphVisualizer extends JPanel {
         JButton dpButton = createStyledButton("Dynamic Programming");
 
         // Add action listeners for the buttons
-        bruteForceButton.addActionListener(e -> displayAlgorithmResult("Brute Force", BruteForce.solveTSPTW_BruteForce(graph, "A")));
-        greedyButton.addActionListener(e -> displayAlgorithmResult("Greedy", Greedy.solveTSPTW_Greedy(graph, "A")));
-        divideAndConquerButton.addActionListener(e -> displayAlgorithmResult("Divide & Conquer", DivideAndConquer.solveTSPTW_DivideAndConquer(graph, graph.getAllCities(), "A")));
+        bruteForceButton.addActionListener(e -> displayAlgorithmResult("Brute Force", BruteForce.solveTSPTW_BruteForce(graph, startCity)));
+        greedyButton.addActionListener(e -> displayAlgorithmResult("Greedy", Greedy.solveTSPTW_Greedy(graph, startCity)));
+        divideAndConquerButton.addActionListener(e -> displayAlgorithmResult("Divide & Conquer", DivideAndConquer.solveTSPTW_DivideAndConquer(graph, graph.getAllCities(), startCity)));
         dpButton.addActionListener(e -> {
             int[][] costMatrix = graph.toAdjacencyMatrix();
             int[][] travelTimeMatrix = graph.toTravelTimeMatrix();
@@ -232,9 +234,9 @@ public class GraphVisualizer extends JPanel {
         }
     }
 
-    public static void createAndShowGUI(Graph graph) {
+    public static void createAndShowGUI(Graph graph, String startCity) {
         JFrame frame = new JFrame("Graph Visualization");
-        GraphVisualizer panel = new GraphVisualizer(graph);
+        GraphVisualizer panel = new GraphVisualizer(graph, startCity);
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(panel);

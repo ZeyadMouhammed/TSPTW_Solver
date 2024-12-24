@@ -1,6 +1,7 @@
 import javax.swing.*;
 
-public class Main {
+public class TestCase3 {
+
     public static void main(String[] args) {
         // Create a graph object
         Graph graph = new Graph();
@@ -14,6 +15,7 @@ public class Main {
         // Connect cities with distances and travel times
         graph.connectCities("A", "B", 5, 3);
         graph.connectCities("A", "C", 10, 6);
+        graph.connectCities("A", "D", 5, 3);
         graph.connectCities("B", "C", 4, 2);
         graph.connectCities("B", "D", 8, 5);
         graph.connectCities("C", "D", 6, 4);
@@ -21,4 +23,5 @@ public class Main {
         // Create and show the GUI
         SwingUtilities.invokeLater(() -> GraphVisualizer.createAndShowGUI(graph, "A"));
     }
+
 }
