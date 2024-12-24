@@ -108,6 +108,23 @@ public class Graph {
         return edge.travelTime;
     }
 
+    public int getValidArrivalTime(String city1, String city2, int arrivalTime) {
+        // Calculate the tentative arrival time at city2 from city1
+        int travelTime = getEdgeTravelTime(city1, city2);
+        int totalTime = arrivalTime + travelTime;
+
+        // Get the target city (node)
+        Node to = getNodeByName(city2);
+
+        // Check if totalTime exceeds the latest allowable time
+        if (!to.timeWindow.isWithinLatestTimeWindow(totalTime)) {
+            return -1; // Invalid, as it exceeds the latest time window
+        }
+
+        // If totalTime is earlier than the earliest allowable time, wait until the earliest allowed time
+        return Math.max(totalTime, to.timeWindow.earliestTime); // Ensure arrival time is at least the earliest time
+    }
+
     /**
      * Retrieves a list of city names that can be reached directly from the given city.
      *
@@ -153,15 +170,25 @@ public class Graph {
      * @param time  time to travel between two cities
      * @return is it feasible to travel to this city
      */
-    public boolean isEdgeWithinTimeWindow(String city1, String city2, int time) {
-        return Objects.requireNonNull(getEdgeBetweenTwoCities(city1, city2)).isEdgeWithinTimeWindow(time);
+    public boolean isEdgeWithinLatestTimeWindow(String city1, String city2, int time) {
+        return Objects.requireNonNull(getEdgeBetweenTwoCities(city1, city2)).isEdgeWithinLatestTimeWindow(time);
     }
 
     /**
-     *  checks if edge does exits
+     * @param city1 first city name
+     * @param city2 second city name
+     * @param time  time to travel between two cities
+     * @return is it Time WithinEarliestTimeWindow
+     */
+    public boolean isEdgeWithinEarliestTimeWindow(String city1, String city2, int time) {
+        return Objects.requireNonNull(getEdgeBetweenTwoCities(city1, city2)).isEdgeWithinEarliestTimeWindow(time);
+    }
+
+    /**
+     * checks if edge does exits
      *
      * @param currentCity first city name
-     * @param startCity second city name
+     * @param startCity   second city name
      * @return does edge exists or no
      */
     public boolean isEdgeValid(String currentCity, String startCity) {
@@ -182,85 +209,52 @@ public class Graph {
      * @param path List of locations representing the path to be evaluated.
      * @return The total cost of the path if feasible, or -1 if the path is invalid due to time window constraints.
      */
-    public int calculateFeasiblePathCost(List<String> path) {
-        int totalCost = 0; // Variable to accumulate the total cost of the path.
-        int currentTime = 0; // Keeps track of the current time as the path is traversed.
+    public int[] calculateFeasiblePathCost(List<String> path) {
+        int totalCost = 0; // Total travel distance.
+        int currentTime = 0; // Current accumulated time.
 
-        // Iterate through each edge in the path
+        // Iterate through each consecutive pair of nodes in the path.
         for (int i = 0; i < path.size() - 1; i++) {
-            String from = path.get(i); // Starting point of the current edge.
-            String to = path.get(i + 1); // Ending point of the current edge.
+            String from = path.get(i);
+            String to = path.get(i + 1);
 
-            // Get the travel time for the current edge
+            // Get travel time for the edge.
             int travelTime = getEdgeTravelTime(from, to);
-
-            // If the travel time is -1, it means the edge is invalid (no valid connection)
             if (travelTime == -1) {
-                return -1; // Invalid path, return -1.
+                // Invalid edge, path is not feasible.
+                return null;
             }
 
-            // Calculate the arrival time at the destination
+            // Calculate arrival time at the destination node.
             int arrivalTime = currentTime + travelTime;
 
-            // Check if the edge is within the allowed time window based on the arrival time
-            if (!isEdgeWithinTimeWindow(from, to, arrivalTime)) {
-                return -1; // Invalid path, return -1.
+            // Get the time window details for the destination node.
+            Node toNode = getNodeByName(to);
+            int earliestTime = toNode.timeWindow.earliestTime;
+            int latestTime = toNode.timeWindow.latestTime;
+
+            // Check if the path violates the latest time window.
+            if (arrivalTime > latestTime) {
+                return null; // Path fails latest time window constraint.
             }
 
-            // Update the current time and accumulate the cost of the path (travel distance)
-            currentTime = arrivalTime;
-            totalCost += getEdgeTravelDistance(from, to); // Add the distance of the edge to total cost.
+            // Wait until the earliest allowed time, if necessary.
+            // Proceed with the current arrival time.
+            currentTime = Math.max(arrivalTime, earliestTime); // Update to wait until earliest time.
+
+            // Accumulate the cost of the edge.
+            totalCost += getEdgeTravelDistance(from, to);
         }
 
-        // Return the total cost of the feasible path
-        return totalCost;
-    }
-
-    /**
-     * Calculates the total feasible path cost for a given path, considering travel time and time windows.
-     *
-     * @param path List of locations representing the path to be evaluated.
-     * @return The total time cost of the path if feasible, or -1 if the path is invalid due to time window constraints.
-     */
-    public int calculateFeasiblePathTime(List<String> path) {
-        int totalTimeCost = 0; // Variable to accumulate the total time cost of the path.
-        int currentTime = 0; // Keeps track of the current time as the path is traversed.
-
-        // Iterate through each edge in the path
-        for (int i = 0; i < path.size() - 1; i++) {
-            String from = path.get(i); // Starting point of the current edge.
-            String to = path.get(i + 1); // Ending point of the current edge.
-
-            // Get the travel time for the current edge
-            int travelTime = getEdgeTravelTime(from, to);
-
-            // If the travel time is -1, it means the edge is invalid (no valid connection)
-            if (travelTime == -1) {
-                return -1; // Invalid path, return -1.
-            }
-
-            // Calculate the arrival time at the destination
-            int arrivalTime = currentTime + travelTime;
-
-            // Check if the edge is within the allowed time window based on the arrival time
-            if (!isEdgeWithinTimeWindow(from, to, arrivalTime)) {
-                return -1; // Invalid path, return -1.
-            }
-
-            // Update the current time and accumulate the time cost of the path (travel time)
-            currentTime = arrivalTime;
-            totalTimeCost += travelTime; // Add the travel time of the edge to total time cost.
-        }
-
-        // Return the total time cost of the feasible path
-        return totalTimeCost;
+        // Return the total cost and final time as an array.
+        return new int[]{totalCost, currentTime};
     }
 
     /**
      * Calculates the total arrival time for a given path, including an additional travel time.
      * This method validates the connectivity of the path by checking the travel time for each edge.
      *
-     * @param path The list of nodes representing the path.
+     * @param path                 The list of nodes representing the path.
      * @param additionalTravelTime The extra travel time to be added after traversing the path.
      * @return The total arrival time, or -1 if the path contains invalid edges.
      */
@@ -286,43 +280,6 @@ public class Graph {
 
         // Add the additional travel time to the total cumulative travel time
         return currentTime + additionalTravelTime;
-    }
-
-    /**
-     * Calculates the total distance and time for a given path without considering time window constraints.
-     *
-     * @param path List of locations representing the path to be evaluated.
-     * @return An array of two integers: the total distance and total time of the path.
-     */
-    public int[] calculatePathDistanceAndTime(List<String> path) {
-        int totalDistance = 0; // Variable to accumulate the total distance.
-        int totalTime = 0; // Variable to accumulate the total time.
-        int currentTime = 0; // Keeps track of the current time as the path is traversed.
-
-        // Iterate through each edge in the path
-        for (int i = 0; i < path.size() - 1; i++) {
-            String from = path.get(i); // Starting point of the current edge.
-            String to = path.get(i + 1); // Ending point of the current edge.
-
-            // Get the travel distance and time for the current edge
-            int travelDistance = getEdgeTravelDistance(from, to);
-            int travelTime = getEdgeTravelTime(from, to);
-
-            // If either travel distance or travel time is -1, it indicates an invalid edge
-            if (travelDistance == -1 || travelTime == -1) {
-                return new int[]{0, 0}; // Return [0, 0] for invalid path.
-            }
-
-            // Add the travel distance and time to the total accumulations
-            totalDistance += travelDistance;
-            currentTime += travelTime; // Update current time based on travel time.
-        }
-
-        // The total time is the accumulated current time after traversing all edges
-        totalTime = currentTime;
-
-        // Return an array containing both total distance and total time
-        return new int[]{totalDistance, totalTime};
     }
 
     /**
@@ -372,7 +329,7 @@ public class Graph {
     }
 
     /**
-     ** Converts the Cities time windows to a matrix
+     * * Converts the Cities time windows to a matrix
      *
      * @return timeWindows in a matrix form
      */
@@ -455,17 +412,29 @@ public class Graph {
     private Node getNearestNeighbor(Node current, int currentTime) {
         Node nearest = null;
         int minDistance = Integer.MAX_VALUE;
+        int earliestArrivalTime = Integer.MAX_VALUE;  // To store the earliest arrival time in case of ties in distance
 
+        // Iterate over all neighbors to find the nearest one
         for (Edge edge : current.neighbours.values()) {
             int arrivalTime = currentTime + edge.travelTime;
 
             // Ensure the arrival time is within the time window of the neighbor
-            if (edge.isEdgeWithinTimeWindow(arrivalTime) && edge.distance < minDistance) {
-                nearest = edge.to;
-                minDistance = edge.distance;
+            if (edge.isEdgeWithinLatestTimeWindow(arrivalTime)) {
+                // First, check if this edge has a smaller distance
+                if (edge.distance < minDistance) {
+                    nearest = edge.to;  // Update the nearest node
+                    minDistance = edge.distance;  // Update the minimum distance
+                    earliestArrivalTime = arrivalTime;  // Update the earliest arrival time
+                }
+                // If distances are the same, prefer the one with the earlier arrival time
+                else if (edge.distance == minDistance && arrivalTime < earliestArrivalTime) {
+                    nearest = edge.to;  // Update the nearest node with earlier arrival time
+                    earliestArrivalTime = arrivalTime;  // Update the earliest arrival time
+                }
             }
         }
 
+        // Return the nearest node, or null if no valid neighbor was found
         return nearest;
     }
 
@@ -649,8 +618,16 @@ public class Graph {
             this.travelTime = travelTime;
         }
 
-        private boolean isEdgeWithinTimeWindow(int time) {
-            return to.timeWindow.isWithinTimeWindow(time);
+        private boolean isEdgeWithinLatestTimeWindow(int time) {
+            return to.timeWindow.isWithinLatestTimeWindow(time);
+        }
+
+        private boolean isEdgeWithinEarliestTimeWindow(int time) {
+            return to.timeWindow.isWithinEarliestTimeWindow(time);
+        }
+
+        private int getEarliestTime() {
+            return to.timeWindow.earliestTime;
         }
 
         @Override
@@ -672,12 +649,12 @@ public class Graph {
             this.latestTime = latestTime;
         }
 
-        private boolean isWithinTimeWindow(int time) {
-            return time >= earliestTime && time <= latestTime;
+        private boolean isWithinLatestTimeWindow(int time) {
+            return time <= latestTime;
         }
 
-        public boolean isOutsideTimeWindow(int time) {
-            return !isWithinTimeWindow(time);
+        private boolean isWithinEarliestTimeWindow(int time) {
+            return time >= earliestTime;
         }
 
     }

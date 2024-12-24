@@ -1,16 +1,70 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class GraphVisualizer extends JPanel {
 
-    private Graph graph;
+    private final Graph graph;
+    private final String startCity;
+    private JTextArea outputArea;
 
-    public GraphVisualizer(Graph graph) {
+    public GraphVisualizer(Graph graph, String startCity) {
         this.graph = graph;
-        setPreferredSize(new Dimension(800, 600)); // Set the preferred size of the panel
+        this.startCity = startCity;
+        setPreferredSize(new Dimension(900, 700));
+        setLayout(new BorderLayout()); // Use BorderLayout for better positioning
+
+        // Create a panel for buttons
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10)); // Center-align buttons with spacing
+
+        JButton bruteForceButton = createStyledButton("Brute Force");
+        JButton greedyButton = createStyledButton("Greedy");
+        JButton divideAndConquerButton = createStyledButton("Divide & Conquer");
+        JButton dpButton = createStyledButton("Dynamic Programming");
+
+        // Add action listeners for the buttons
+        bruteForceButton.addActionListener(e -> displayAlgorithmResult("Brute Force", BruteForce.solveTSPTW_BruteForce(graph, startCity)));
+        greedyButton.addActionListener(e -> displayAlgorithmResult("Greedy", Greedy.solveTSPTW_Greedy(graph, startCity)));
+        divideAndConquerButton.addActionListener(e -> displayAlgorithmResult("Divide & Conquer", DivideAndConquer.solveTSPTW_DivideAndConquer(graph, graph.getAllCities(), startCity)));
+        dpButton.addActionListener(e -> {
+            int[][] costMatrix = graph.toAdjacencyMatrix();
+            int[][] travelTimeMatrix = graph.toTravelTimeMatrix();
+            int[][] timeWindows = graph.toTimeWindowMatrix();
+            int[] result = DynamicProgramming.solveTSPTW_DP(costMatrix, travelTimeMatrix, timeWindows);
+            if (result[0] != -1) {
+                outputArea.append("\nDynamic Programming:\nMinimum cost: " + result[0] + "\tPath Time: " + result[1] + "\n");
+            } else {
+                outputArea.append("\nDynamic Programming:\nNo feasible solution exists within the given time windows.\n");
+            }
+        });
+
+        // Add buttons to the button panel
+        buttonPanel.add(bruteForceButton);
+        buttonPanel.add(greedyButton);
+        buttonPanel.add(divideAndConquerButton);
+        buttonPanel.add(dpButton);
+
+        // Create a text area for output
+        outputArea = new JTextArea(8, 50);
+        outputArea.setFont(new Font("Monospaced", Font.PLAIN, 14)); // Set a cooler font
+        outputArea.setBackground(new Color(40, 44, 52)); // Dark background
+        outputArea.setForeground(Color.WHITE); // White text
+        outputArea.setBorder(BorderFactory.createLineBorder(Color.GRAY)); // Border around the area
+        outputArea.setEditable(false); // Make it read-only
+
+        // Add the JTextArea inside a JScrollPane for scrollable output
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+        scrollPane.setPreferredSize(new Dimension(800, 150)); // Set preferred size for the scrollable area
+        scrollPane.setBorder(BorderFactory.createTitledBorder("Algorithm Output")); // Add a title
+
+        // Add components to the main panel
+        add(buttonPanel, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.SOUTH);
     }
 
     @Override
@@ -159,9 +213,30 @@ public class GraphVisualizer extends JPanel {
         }
     }
 
-    public static void createAndShowGUI(Graph graph) {
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setBackground(new Color(70, 130, 180)); // Steel blue color
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        return button;
+    }
+
+    private void displayAlgorithmResult (String algorithmName, List < String > solution){
+        outputArea.append("\n" + algorithmName + ":\n");
+        if (solution == null || solution.isEmpty()) {
+            outputArea.append("No valid path found.\n");
+        } else {
+            outputArea.append("Optimal Path: " + solution + "\n");
+            int[] cost = graph.calculateFeasiblePathCost(solution);
+            outputArea.append("Optimal Path Distance: " + cost[0] + "\tTime: " + cost[1] + "\n");
+        }
+    }
+
+    public static void createAndShowGUI(Graph graph, String startCity) {
         JFrame frame = new JFrame("Graph Visualization");
-        GraphVisualizer panel = new GraphVisualizer(graph);
+        GraphVisualizer panel = new GraphVisualizer(graph, startCity);
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(panel);

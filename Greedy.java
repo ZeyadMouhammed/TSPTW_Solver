@@ -13,59 +13,67 @@ public class Greedy {
         List<String> path = new ArrayList<>();
         Set<String> visited = new HashSet<>();
         String currentCity = startCity;
-        int currentTime = 0;
+        int currentTime = 0;  // Start time is 0
+        int totalDistance = 0;
 
         // Add the start node to the path and mark it visited
         path.add(currentCity);
         visited.add(currentCity);
 
-        // While there are unvisited nodes
+        // While there are unvisited cities
         while (visited.size() < graph.getNumberOfCities()) {
-            String nextNode = null;
-            int minTravelTime = Integer.MAX_VALUE;
+            String nextCity = null;
+            int minDistance = Integer.MAX_VALUE;
+            int bestArrivalTime = Integer.MAX_VALUE;
 
             // Check all cities that are not visited
             for (String city : graph.getAllCities()) {
-                if (!visited.contains(city)) {
-                    // Check if an edge exists between current city and next city
-                    if (graph.isEdgeValid(currentCity, city)) {
-                        // Calculate travel time and arrival time
-                        int travelTime = graph.getEdgeTravelTime(currentCity, city);
-                        int arrivalTime = currentTime + travelTime;
+                if (!visited.contains(city) && graph.isEdgeValid(currentCity, city)) {
+                    int validArrivalTime = graph.getValidArrivalTime(currentCity, city, currentTime);
 
-                        // Use isEdgeWithinTimeWindow to check if the city is feasible to visit
-                        if (graph.isEdgeWithinTimeWindow(currentCity, city, arrivalTime)) {
-                            // Select the city with the smallest travel time
-                            if (travelTime < minTravelTime) {
-                                minTravelTime = travelTime;
-                                nextNode = city;
-                            }
+                    if (validArrivalTime != -1) {
+                        int travelDistance = graph.getEdgeTravelDistance(currentCity, city);
+
+                        // Select the next city based on smallest distance and smallest valid arrival time in case of a tie
+                        if (travelDistance < minDistance ||
+                                (travelDistance == minDistance && validArrivalTime < bestArrivalTime)) {
+                            minDistance = travelDistance;
+                            nextCity = city;
+                            bestArrivalTime = validArrivalTime;
                         }
                     }
                 }
             }
 
-            if (nextNode == null) {
-                // If no valid next city is found, return null
+            // If no valid next city is found
+            if (nextCity == null) {
                 return null;
             }
 
-            // Update path, visited cities, and current time
-            visited.add(nextNode);
-            path.add(nextNode);
-            currentCity = nextNode;
-            currentTime += minTravelTime; // Update the time after visiting the city
+            // Update path, visited cities, total distance, and current city/time
+            visited.add(nextCity);
+            path.add(nextCity);
+            totalDistance += minDistance;
+            currentCity = nextCity;
+            currentTime = bestArrivalTime;
         }
 
-        // Optionally return to the start node to complete the cycle
-        if (!currentCity.equals(startCity) && graph.isEdgeValid(currentCity, startCity)) {
-            path.add(startCity);
+        // Attempt to return to the start node
+        if (graph.isEdgeValid(currentCity, startCity)) {
+            int returnDistance = graph.getEdgeTravelDistance(currentCity, startCity);
+            int returnArrivalTime = graph.getValidArrivalTime(currentCity, startCity, currentTime);
+
+            if (returnArrivalTime != -1) {
+                path.add(startCity);
+                totalDistance += returnDistance;
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
 
         return path;
-
     }
 
 }
