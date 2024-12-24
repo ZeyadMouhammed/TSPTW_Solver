@@ -108,6 +108,19 @@ public class Graph {
         return edge.travelTime;
     }
 
+    public int getValidArrivalTime(String city1, String city2, int arrivalTime){
+        int totalTime = getEdgeTravelTime(city1, city2) + arrivalTime;
+        Node to = getNodeByName(city2);
+        if(to.timeWindow.isWithinLatestTimeTimeWindow(totalTime)){
+            if(!(to.timeWindow.isWithinEarliestTimeTimeTimeWindow(totalTime))){
+                return totalTime + to.timeWindow.earliestTime;
+            }else {
+                return totalTime;
+            }
+        }
+        return -1;
+    }
+
     /**
      * Retrieves a list of city names that can be reached directly from the given city.
      *
