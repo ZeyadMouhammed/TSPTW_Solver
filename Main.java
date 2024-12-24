@@ -1,5 +1,4 @@
 import javax.swing.*;
-import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -21,65 +20,5 @@ public class Main {
 
         // Create and show the GUI
         SwingUtilities.invokeLater(() -> GraphVisualizer.createAndShowGUI(graph));
-
-        // Solve TSPTW using brute force
-        List<String> solution = BruteForce.solveTSPTW_BruteForce(graph, "A");
-
-        int[] cost = {0, 0};
-
-        // Print the solution
-        if (solution == null) {
-            System.out.println("No valid path found.");
-        } else {
-            System.out.println("Optimal Path: " + solution);
-            cost = graph.calculateFeasiblePathCost(solution);
-            System.out.println("optimal path Distance: " + cost[0] + " Time: " + cost[1]);
-        }
-
-
-        System.out.println();
-
-        solution = Greedy.solveTSPTW_Greedy(graph, "A");
-        System.out.println("Greedy");
-        // Print the solution
-        if (solution == null) {
-            System.out.println("No valid path found.");
-        } else {
-            System.out.println("Optimal Path: " + solution);
-            cost = graph.calculateFeasiblePathCost(solution);
-            System.out.println("optimal path Distance: " + cost[0] + " Time: " + cost[1]);
-        }
-
-
-        System.out.println();
-
-        solution = DivideAndConquer.solveTSPTW_DivideAndConquer(graph, graph.getAllCities(), "A");
-        System.out.println("D & C");
-        if (solution == null) {
-            System.out.println("No valid path found.");
-        } else {
-            System.out.println("Optimal Path: " + solution);
-            cost = graph.calculateFeasiblePathCost(solution);
-            System.out.println("optimal path Distance: " + cost[0] + " Time: " + cost[1]);
-        }
-
-        System.out.println();
-        System.out.println("DP");
-        System.out.println();
-        // Example: Define cost matrix, travel time matrix, and time windows
-        int[][] costMatrix = graph.toAdjacencyMatrix();
-
-        int[][] travelTimeMatrix = graph.toTravelTimeMatrix();
-
-        int[][] timeWindows = graph.toTimeWindowMatrix();
-
-        int[] result = DynamicProgramming.solveTSPTW_DP(costMatrix, travelTimeMatrix, timeWindows);
-        if (result[0] != -1) {
-            System.out.println("Minimum cost to solve TSPTW: " + result[0] + " Path Time: " + result[1]);
-        } else {
-            System.out.println("No feasible solution exists within the given time windows.");
-        }
-
     }
-
 }
