@@ -125,9 +125,6 @@ public class Graph {
         return Math.max(totalTime, to.timeWindow.earliestTime); // Ensure arrival time is at least the earliest time
     }
 
-
-
-
     /**
      * Retrieves a list of city names that can be reached directly from the given city.
      *
