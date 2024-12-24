@@ -108,18 +108,25 @@ public class Graph {
         return edge.travelTime;
     }
 
-    public int getValidArrivalTime(String city1, String city2, int arrivalTime){
-        int totalTime = getEdgeTravelTime(city1, city2) + arrivalTime;
+    public int getValidArrivalTime(String city1, String city2, int arrivalTime) {
+        // Calculate the tentative arrival time at city2 from city1
+        int travelTime = getEdgeTravelTime(city1, city2);
+        int totalTime = arrivalTime + travelTime;
+
+        // Get the target city (node)
         Node to = getNodeByName(city2);
-        if(to.timeWindow.isWithinLatestTimeTimeWindow(totalTime)){
-            if(!(to.timeWindow.isWithinEarliestTimeTimeTimeWindow(totalTime))){
-                return totalTime + to.timeWindow.earliestTime;
-            }else {
-                return totalTime;
-            }
+
+        // Check if totalTime exceeds the latest allowable time
+        if (!to.timeWindow.isWithinLatestTimeWindow(totalTime)) {
+            return -1; // Invalid, as it exceeds the latest time window
         }
-        return -1;
+
+        // If totalTime is earlier than the earliest allowable time, wait until the earliest allowed time
+        return Math.max(totalTime, to.timeWindow.earliestTime); // Ensure arrival time is at least the earliest time
     }
+
+
+
 
     /**
      * Retrieves a list of city names that can be reached directly from the given city.
@@ -615,11 +622,11 @@ public class Graph {
         }
 
         private boolean isEdgeWithinLatestTimeWindow(int time) {
-            return to.timeWindow.isWithinLatestTimeTimeWindow(time);
+            return to.timeWindow.isWithinLatestTimeWindow(time);
         }
 
         private boolean isEdgeWithinEarliestTimeWindow(int time) {
-            return to.timeWindow.isWithinEarliestTimeTimeTimeWindow(time);
+            return to.timeWindow.isWithinEarliestTimeWindow(time);
         }
 
         private int getEarliestTime() {
@@ -645,11 +652,11 @@ public class Graph {
             this.latestTime = latestTime;
         }
 
-        private boolean isWithinLatestTimeTimeWindow(int time) {
+        private boolean isWithinLatestTimeWindow(int time) {
             return time <= latestTime;
         }
 
-        private boolean isWithinEarliestTimeTimeTimeWindow(int time) {
+        private boolean isWithinEarliestTimeWindow(int time) {
             return time >= earliestTime;
         }
 
