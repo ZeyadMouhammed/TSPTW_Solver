@@ -10,7 +10,7 @@ public class DynamicProgramming {
         int fullMask = (1 << n) - 1;
 
         // dp[mask][i] -> Minimum cost to visit all nodes in 'mask' ending at node 'i'
-        int[][] dp = new int[1 << n][n];
+        int[][] dp = new int[1 << n][n]; // << bit wise shifter equivalent to 2 power n  * n
         int[][] arrivalTime = new int[1 << n][n]; // Tracks arrival time at each node
 
         // Initialize dp and arrivalTime arrays
